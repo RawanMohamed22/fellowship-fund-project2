@@ -23,14 +23,11 @@ const Signup = () => {
   const onSubmit: SubmitHandler<IFormInput> = async (data) => {
     console.log(data);
     try {
-      setIsLoading(true)
-      const res = await AxiosInstance.post("", data)
+      const res = await AxiosInstance.post("api/register", data)
       console.log(res);
     } catch (error) {
       console.log(error); //API errors
-    } finally {
-      setIsLoading(false)
-    }
+    } 
   }
   console.log(errors);  //Validation errors
 
