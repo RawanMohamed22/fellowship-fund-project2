@@ -1,6 +1,4 @@
 import { yupResolver } from "@hookform/resolvers/yup";
-import Footer from "../components/Footer";
-import Navbar from "../components/Navbar";
 import { RegisterFormFields } from "../data";
 import { useForm, type SubmitHandler } from "react-hook-form"
 import { RegisterSchema } from "../validation";
@@ -8,6 +6,9 @@ import InputErrorMsg from "../components/InputErrorMsg";
 import AxiosInstance from "../config/axios.config";
 import { useState } from "react";
 import { Spinner } from "../icons";
+import type { AxiosError } from "axios";
+import type { IError } from "../interfaces";
+import { Link } from "react-router-dom";
 
 interface IFormInput {
   username: string
@@ -19,17 +20,30 @@ interface IFormInput {
 const Signup = () => {
 
   const [isLoading, setIsLoading] = useState(false)
-  const { register, handleSubmit , formState : {errors} } = useForm<IFormInput>({resolver : yupResolver(RegisterSchema)})
+  const { register, handleSubmit , formState : {errors} , setError, clearErrors } = useForm<IFormInput>({resolver : yupResolver(RegisterSchema)})
   const onSubmit: SubmitHandler<IFormInput> = async (data) => {
     console.log(data);
     try {
+      clearErrors("root")
+      setIsLoading(true)
       const res = await AxiosInstance.post("api/register", data)
       console.log(res);
     } catch (error) {
-      console.log(error); //API errors
-    } 
+      const errorObject = error as AxiosError<IError>
+      const apiErrors = errorObject.response?.data.errors
+      if(apiErrors){
+        Object.keys(apiErrors).forEach((field) => {
+          setError(field as keyof IFormInput, {
+            type: "server",
+            message: apiErrors[field][0]
+          })
+        })
+      }
+    } finally {
+      setIsLoading(false)
+    }
   }
-  console.log(errors);  //Validation errors
+  // console.log(errors);  //Validation errors
 
   //________INPUTS RENDER________// 
   const RenderRegisterForm = RegisterFormFields.map(({icon ,placeHolder ,type, Name}, idx) => (
@@ -44,9 +58,7 @@ const Signup = () => {
     </div>
   ))
   return (
-    <div className="min-h-screen flex flex-col">
-      <Navbar />
-      <main className="flex-1 flex items-center justify-center">
+    <div className="flex-1 w-full flex items-center justify-center">
         <section className="grid grid-cols-2 items-center border-2 rounded-3xl border-[#033A70] max-w-7xl w-full">
           <div className=" bg-[#033A70] rounded-s-2xl">
             <div className="space-y-10 max-w-md mx-auto py-5 ">
@@ -61,7 +73,7 @@ const Signup = () => {
                 <button className="bg-[#C4AB4B] text-[#FEFFFC] rounded-2xl py-3 w-full hover:bg-[#AC8800] transition-colors flex items-center justify-center">
                   {isLoading ? <Spinner/> : "تسجيل"}
                 </button>
-                <p className="text-[#FEFFFC] text-center">لديك حساب بالفعل؟ <span className="text-[#C4AB4B] ">تسجيل دخول</span></p>
+                <p className="text-[#FEFFFC] text-center">لديك حساب بالفعل؟ <Link to={"/login"} className="text-[#C4AB4B] ">تسجيل دخول</Link></p>
                 </div>
               </form>
             </div>
@@ -70,8 +82,6 @@ const Signup = () => {
             <img src="/Logo.png" className="max-w-md mx-auto" />
           </div>
         </section>
-      </main>
-      <Footer />
     </div>
   );
 };
