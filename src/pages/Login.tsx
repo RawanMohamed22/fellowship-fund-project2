@@ -48,7 +48,7 @@ const LoginPage = () => {
               {icon}
             </span>
           </div>
-          {Name === "password" && <p className="flex justify-end text-[#FEFFFC] pt-3">هل نسيت  كلمة المرور ؟</p>}
+          {Name === "password" && <Link to={"/forget-password"} className="flex justify-end text-[#FEFFFC] pt-3">هل نسيت  كلمة المرور ؟</Link>}
           {errors[Name] && <InputErrorMsg msg={errors[Name]?.message}/>}
         </div>
       ))
